@@ -4,19 +4,47 @@ A simple, beautiful web app that keeps unscheduled TODOs in an Inbox and lets yo
 
 ## Features
 
-- Inbox for tasks that aren’t scheduled yet
+- Inbox for tasks that aren't scheduled yet
 - Week calendar with 30-minute slots
 - Drag from Inbox → drop onto the calendar to schedule
 - Move scheduled tasks by dragging to a new slot
 - Unschedule by dropping back into the Inbox area
 - Quick edit dialog for title and duration, plus delete
 - LocalStorage persistence (your data stays in the browser)
+- **Google Calendar-style keyboard shortcuts** for efficient navigation
+
+## Keyboard Shortcuts
+
+Press **?** to see all shortcuts in the app, or use these common ones:
+
+### Navigation
+- **← / J** — Previous week/period
+- **→ / K** — Next week/period  
+- **T** — Go to today
+- **↑ / ↓** — Scroll calendar up/down (2 hours at a time)
+- **Home** — Jump to morning (6:30 AM)
+- **End** — Jump to end of day
+
+### Views & Actions
+- **1** — Switch to 4-day view
+- **2** — Switch to week view
+- **D** — Toggle density (compact/cozy/relaxed)
+- **N / C** — Create new task (focus input)
+- **/ or Cmd+F** — Search/filter
+- **R** — Refresh view
+- **Esc** — Close dialogs or blur inputs
+- **Cmd+Enter** — Submit new task form
+
+### Tips
+- **Double-click** any time slot to quick-create an event
+- **Drag & drop** to schedule or move tasks
+- **Resize handle** on events (drag bottom edge) to change duration
 
 ## Project structure
 
 - `index.html` — Main page
 - `styles.css` — Styling (dark theme, clean layout)
-- `app.js` — Logic (rendering, drag-and-drop, storage)
+- `app.js` — Logic (rendering, drag-and-drop, storage, keyboard shortcuts)
 
 ## Run locally
 
@@ -42,6 +70,7 @@ python3 -m http.server 5173
 - Use the header controls to switch weeks or jump to Today.
 - Click a scheduled task to quickly edit its title or duration.
 - Drag a scheduled task into the Inbox panel to unschedule it.
+- Press **?** for the full list of keyboard shortcuts.
 
 ## Next ideas
 

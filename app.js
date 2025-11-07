@@ -1243,22 +1243,285 @@
   function trashSvg(label){
     return `<span class="sr-only">${escapeHtml(label)}</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"/></svg>`;
   }
+
+  // ========================================
+  // KEYBOARD SHORTCUTS (Google Calendar-style)
+  // ========================================
+  
+  /**
+   * Show keyboard shortcuts help dialog
+   */
+  function showKeyboardShortcuts(){
+    const shortcuts = [
+      ['Navigation', [
+        ['← or J', 'Previous week/period'],
+        ['→ or K', 'Next week/period'],
+        ['T', 'Go to today'],
+        ['↑', 'Scroll up (2 hours)'],
+        ['↓', 'Scroll down (2 hours)'],
+        ['Home', 'Go to morning (6:30 AM)'],
+        ['End', 'Go to end of day']
+      ]],
+      ['Views', [
+        ['1', 'Switch to 4-day view'],
+        ['2', 'Switch to week view'],
+        ['D', 'Toggle density (compact/cozy/relaxed)']
+      ]],
+      ['Actions', [
+        ['N or C', 'New task (focus input)'],
+        ['/ or Cmd+F', 'Search/filter'],
+        ['R', 'Refresh view'],
+        ['Esc', 'Close dialog or blur input'],
+        ['Cmd+Enter', 'Submit new task form']
+      ]],
+      ['Tips', [
+        ['Double-click', 'Create event at time slot'],
+        ['Drag & drop', 'Schedule or move tasks'],
+        ['Resize handle', 'Drag bottom edge to resize events'],
+        ['?', 'Show this help']
+      ]]
+    ];
+    
+    let html = '<div class="shortcuts-help"><h3>Keyboard Shortcuts</h3>';
+    
+    for(const [category, items] of shortcuts){
+      html += `<div class="shortcut-category"><h4>${category}</h4><dl>`;
+      for(const [key, desc] of items){
+        html += `<dt><kbd>${escapeHtml(key)}</kbd></dt><dd>${escapeHtml(desc)}</dd>`;
+      }
+      html += '</dl></div>';
+    }
+    
+    html += '<p class="muted small">Press Esc to close this help.</p></div>';
+    
+    // Create and show modal
+    const modal = document.createElement('div');
+    modal.className = 'shortcuts-modal';
+    modal.innerHTML = html;
+    modal.addEventListener('click', (e) => {
+      if(e.target === modal){
+        document.body.removeChild(modal);
+      }
+    });
+    
+    // Close on Escape
+    const closeOnEsc = (e) => {
+      if(e.key === 'Escape'){
+        if(document.body.contains(modal)){
+          document.body.removeChild(modal);
+        }
+        document.removeEventListener('keydown', closeOnEsc);
+      }
+    };
+    document.addEventListener('keydown', closeOnEsc);
+    
+    document.body.appendChild(modal);
+    
+    // Focus modal for accessibility
+    modal.setAttribute('tabindex', '-1');
+    modal.focus();
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    // Skip if user is typing in input fields
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement && (
+      activeElement.tagName === 'INPUT' || 
+      activeElement.tagName === 'TEXTAREA' || 
+      activeElement.tagName === 'SELECT' ||
+      activeElement.isContentEditable
+    );
+    
+    // Handle shortcuts that work even when inputs are focused
+    if(e.key === 'Escape'){
+      // Close dialog if open
+      if(eventDialog && eventDialog.open){
+        eventDialog.close();
+        e.preventDefault();
+        return;
+      }
+      // Blur active input
+      if(isInputFocused){
+        activeElement.blur();
+        e.preventDefault();
+        return;
+      }
+    }
+    
+    // Cmd/Ctrl + Enter: Submit forms
+    if((e.metaKey || e.ctrlKey) && e.key === 'Enter'){
+      if(taskTitleInput && taskTitleInput.value.trim() && addTaskForm){
+        addTaskForm.requestSubmit();
+        e.preventDefault();
+        return;
+      }
+    }
+    
+    // Skip other shortcuts if typing in inputs (except specific cases above)
+    if(isInputFocused) return;
+    
+    // Navigation shortcuts
+    switch(e.key.toLowerCase()){
+      case 'arrowleft':
+      case 'j':
+        // Previous week/period
+        if(!e.shiftKey && !e.metaKey && !e.ctrlKey){
+          state.viewStart = addDays(state.viewStart, -getDaysCount());
+          renderAll();
+          saveState();
+          e.preventDefault();
+        }
+        break;
+        
+      case 'arrowright':
+      case 'k':
+        // Next week/period
+        if(!e.shiftKey && !e.metaKey && !e.ctrlKey){
+          state.viewStart = addDays(state.viewStart, getDaysCount());
+          renderAll();
+          saveState();
+          e.preventDefault();
+        }
+        break;
+        
+      case 't':
+        // Today
+        state.viewStart = state.viewMode==='4d' 
+          ? startOfDay(new Date()) 
+          : startOfWeek(new Date());
+        renderAll();
+        saveState();
+        e.preventDefault();
+        break;
+        
+      case 'n':
+      case 'c':
+        // New task (focus input)
+        if(taskTitleInput){
+          taskTitleInput.focus();
+          e.preventDefault();
+        }
+        break;
+        
+      case '/':
+        // Search/filter
+        if(searchInput){
+          searchInput.focus();
+          searchInput.select();
+          e.preventDefault();
+        }
+        break;
+        
+      case '1':
+        // Switch to 4-day view
+        if(viewModeSelect){
+          viewModeSelect.value = '4d';
+          state.viewMode = '4d';
+          state.viewStart = startOfDay(new Date());
+          renderAll();
+          saveState();
+          ensureInitialScroll('view-change');
+          e.preventDefault();
+        }
+        break;
+        
+      case '2':
+        // Switch to week view
+        if(viewModeSelect){
+          viewModeSelect.value = '7d';
+          state.viewMode = '7d';
+          state.viewStart = startOfWeek(new Date());
+          renderAll();
+          saveState();
+          ensureInitialScroll('view-change');
+          e.preventDefault();
+        }
+        break;
+        
+      case 'd':
+        // Toggle density
+        if(densitySelect){
+          const densities = ['compact', 'cozy', 'relaxed'];
+          const current = densitySelect.value;
+          const currentIndex = densities.indexOf(current);
+          const nextIndex = (currentIndex + 1) % densities.length;
+          const next = densities[nextIndex];
+          
+          densitySelect.value = next;
+          state.density = next;
+          applyDensity();
+          renderEvents();
+          saveState();
+          ensureInitialScroll('density-change');
+          e.preventDefault();
+        }
+        break;
+        
+      case 'r':
+        // Refresh/reload data
+        renderAll();
+        e.preventDefault();
+        break;
+        
+      case '?':
+        // Show keyboard shortcuts help
+        showKeyboardShortcuts();
+        e.preventDefault();
+        break;
+        
+      case 'arrowup':
+        // Scroll up in calendar
+        if(calendarBodyEl && !e.shiftKey && !e.metaKey && !e.ctrlKey){
+          const scrollAmount = getSlot30Px() * 4; // 2 hours
+          calendarBodyEl.scrollTop = Math.max(0, calendarBodyEl.scrollTop - scrollAmount);
+          e.preventDefault();
+        }
+        break;
+        
+      case 'arrowdown':
+        // Scroll down in calendar
+        if(calendarBodyEl && !e.shiftKey && !e.metaKey && !e.ctrlKey){
+          const scrollAmount = getSlot30Px() * 4; // 2 hours
+          calendarBodyEl.scrollTop += scrollAmount;
+          e.preventDefault();
+        }
+        break;
+        
+      case 'home':
+        // Go to beginning of day (6:30 AM or top in compact)
+        if(calendarBodyEl){
+          if(state.density === 'compact'){
+            calendarBodyEl.scrollTop = 0;
+          } else {
+            const pxPerMinute = getSlot30Px() / 30;
+            calendarBodyEl.scrollTop = INITIAL_SCROLL_TIME * pxPerMinute;
+          }
+          e.preventDefault();
+        }
+        break;
+        
+      case 'end':
+        // Go to end of day
+        if(calendarBodyEl){
+          calendarBodyEl.scrollTop = calendarBodyEl.scrollHeight;
+          e.preventDefault();
+        }
+        break;
+    }
+    
+    // Shortcuts with modifiers
+    if(e.metaKey || e.ctrlKey){
+      switch(e.key.toLowerCase()){
+        case 'f':
+          // Focus search
+          if(searchInput){
+            searchInput.focus();
+            searchInput.select();
+            e.preventDefault();
+          }
+          break;
+      }
+    }
+  });
 })();
 
-// Keyboard shortcuts (global)
-document.addEventListener('keydown', (e)=>{
-  const titleInput = document.getElementById('taskTitle');
-  if(!titleInput) return;
-  if(e.key === 'n' && !e.metaKey && !e.ctrlKey){
-    titleInput.focus();
-    e.preventDefault();
-  }
-  if((e.metaKey || e.ctrlKey) && e.key === 'Enter'){
-    // submit add form if title populated
-    const form = document.getElementById('addTaskForm');
-    if(titleInput.value.trim() && form){
-      form.requestSubmit();
-      e.preventDefault();
-    }
-  }
-});

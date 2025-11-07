@@ -641,6 +641,114 @@ dialog .icon-btn {
 }
 
 /* ============================================
+   KEYBOARD SHORTCUTS MODAL
+   ============================================ */
+.shortcuts-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.shortcuts-help {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+  animation: slideUp 0.2s ease;
+}
+
+.shortcuts-help h3 {
+  margin: 0 0 20px 0;
+  color: var(--text);
+  font-size: 20px;
+  text-align: center;
+}
+
+.shortcut-category {
+  margin-bottom: 24px;
+}
+
+.shortcut-category:last-of-type {
+  margin-bottom: 12px;
+}
+
+.shortcut-category h4 {
+  margin: 0 0 12px 0;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.shortcut-category dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.shortcut-category dt {
+  margin: 0;
+  text-align: right;
+}
+
+.shortcut-category dd {
+  margin: 0;
+  color: var(--muted);
+}
+
+.shortcuts-help kbd {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.shortcuts-help .muted.small {
+  text-align: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
    RESPONSIVE LAYOUT
    ============================================ */
 @media (max-width: 960px) {
@@ -654,5 +762,26 @@ dialog .icon-btn {
   
   .calendar-body { 
     grid-template-columns: 40px 1fr; 
+  }
+  
+  .shortcuts-help {
+    margin: 10px;
+    max-height: 90vh;
+  }
+  
+  .shortcut-category dl {
+    grid-template-columns: 120px 1fr;
+    gap: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .shortcut-category dl {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  
+  .shortcut-category dt {
+    text-align: left;
   }
 }
