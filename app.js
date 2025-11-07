@@ -749,7 +749,7 @@
     line.style.top = y + 'px';
   line.style.height = '2.5px';
   line.style.background = 'var(--accent)';
-  line.style.boxShadow = '0 0 4px 0.5px var(--accent), 0 1px 4px 0px #0003';
+  line.style.boxShadow = 'none';
   line.style.borderRadius = '2px';
     line.style.pointerEvents = 'none';
     line.style.zIndex = '10';
