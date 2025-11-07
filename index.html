@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planner: Inbox + Calendar</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============================================
+       HEADER: Navigation and Toolbar
+       ============================================ -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo">🗓️</span>
+      <h1>Planner</h1>
+      <span class="tagline">Inbox → Schedule</span>
+    </div>
+    
+    <div class="toolbar">
+      <!-- Week navigation -->
+      <button id="prevWeek" title="Previous week">◀</button>
+      <button id="todayBtn" title="Jump to this week">Today</button>
+      <button id="nextWeek" title="Next week">▶</button>
+      
+      <!-- View controls -->
+      <label class="sr-only" for="viewMode">View</label>
+      <select id="viewMode" title="Choose view">
+        <option value="7d">Week view</option>
+        <option value="4d">4 days</option>
+      </select>
+      
+      <!-- Density controls -->
+      <label class="sr-only" for="density">Density</label>
+      <select id="density" title="Density">
+        <option value="compact">Compact</option>
+        <option value="cozy" selected>Default</option>
+        <option value="relaxed">Relaxed</option>
+      </select>
+      
+      <!-- Search filter -->
+      <input id="searchInput" type="search" placeholder="Search…" title="Filter tasks and events" />
+      
+      <!-- Week label -->
+      <div class="week-label" id="weekLabel">Week</div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       MAIN LAYOUT: Inbox and Calendar
+       ============================================ -->
+  <main class="layout">
+    <!-- ============================================
+         INBOX: Unscheduled Tasks
+         ============================================ -->
+    <!-- ============================================
+         INBOX: Unscheduled Tasks
+         ============================================ -->
+    <section class="inbox" aria-labelledby="inbox-title">
+      <!-- Inbox header -->
+      <div class="inbox-header">
+        <h2 id="inbox-title">Inbox</h2>
+        <p class="muted">Tasks here aren't scheduled yet. Drag them into the calendar to plan.</p>
+      </div>
+
+      <!-- Add new task form -->
+      <form id="addTaskForm" class="add-task" autocomplete="off">
+        <input 
+          id="taskTitle" 
+          type="text" 
+          placeholder="New task title" 
+          aria-label="Task title" 
+          required 
+        />
+        <select id="taskDuration" aria-label="Default duration">
+          <option value="30">30m</option>
+          <option value="45">45m</option>
+          <option value="60" selected>1h</option>
+          <option value="90">1h 30m</option>
+          <option value="120">2h</option>
+          <option value="180">3h</option>
+        </select>
+        <button type="submit">Add</button>
+      </form>
+
+      <!-- Task list with drop zone for unscheduling -->
+      <div id="inboxDropZone" class="inbox-dropzone" aria-label="Drop here to unschedule">
+        <ul id="inboxList" class="task-list" aria-live="polite"></ul>
+        <div class="drop-hint">Drop tasks here to unschedule</div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         CALENDAR: Week View with Time Slots
+         ============================================ -->
+    <section class="calendar" aria-labelledby="calendar-title">    <!-- Calendar -->
+    <!-- ============================================
+         CALENDAR: Week View with Time Slots
+         ============================================ -->
+    <section class="calendar" aria-labelledby="calendar-title">
+      <h2 id="calendar-title" class="sr-only">Calendar</h2>
+      
+      <!-- Calendar header: day labels -->
+      <div class="calendar-header" id="calendarHeader"></div>
+      
+      <!-- Calendar body: time gutter + day columns -->
+      <div class="calendar-body" id="calendarBody">
+        <div class="time-gutter" id="timeGutter"></div>
+        <div class="days" id="daysContainer"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================
+       EVENT EDIT DIALOG
+       Modal for editing scheduled task properties
+       ============================================ -->
+  <dialog id="eventDialog">
+    <form method="dialog" id="eventForm">
+      <h3>Edit scheduled task</h3>
+      
+      <!-- Title field -->
+      <label>
+        Title
+        <input type="text" id="eventTitleInput" />
+      </label>
+      
+      <!-- Duration field -->
+      <label>
+        Duration
+        <select id="eventDurationInput">
+          <option value="30">30 minutes</option>
+          <option value="45">45 minutes</option>
+          <option value="60">1 hour</option>
+          <option value="90">1.5 hours</option>
+          <option value="120">2 hours</option>
+          <option value="180">3 hours</option>
+        </select>
+      </label>
+      
+      <!-- Recurrence type selector -->
+      <label>
+        Repeat
+        <select id="eventRepeatSelect">
+          <option value="none">Does not repeat</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="custom">Custom (pick days)</option>
+        </select>
+      </label>
+      
+      <!-- Weekday selector (shown only for custom recurrence) -->
+      <fieldset id="repeatDays" style="display:none;" aria-hidden="true">
+        <legend>Repeat on</legend>
+        <div class="weekday-checks">
+          <label><input type="checkbox" value="0" /> Sun</label>
+          <label><input type="checkbox" value="1" /> Mon</label>
+          <label><input type="checkbox" value="2" /> Tue</label>
+          <label><input type="checkbox" value="3" /> Wed</label>
+          <label><input type="checkbox" value="4" /> Thu</label>
+          <label><input type="checkbox" value="5" /> Fri</label>
+          <label><input type="checkbox" value="6" /> Sat</label>
+        </div>
+        <p class="muted small">Occurrences are generated up to 30 days into the future.</p>
+      </fieldset>
+      
+      <!-- Dialog action buttons -->
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Close</button>
+        <button id="unscheduleBtn" class="secondary" value="unschedule">Unschedule</button>
+        <button 
+          id="deleteBtn" 
+          class="danger icon-btn" 
+          value="delete" 
+          aria-label="Delete task" 
+          title="Delete task"
+        >
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/>
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <path d="M10 11v6"/>
+            <path d="M14 11v6"/>
+            <path d="M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14"/>
+          </svg>
+          <span class="sr-only">Delete task</span>
+        </button>
+        <button id="saveBtn" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Application JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
