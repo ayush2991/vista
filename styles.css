@@ -347,7 +347,9 @@ button.danger {
   display: grid; 
   grid-template-columns: 60px 1fr; 
   flex: 1; 
-  overflow-y: auto; 
+  overflow-y: auto;
+  /* Add padding to prevent scrollbar from overlapping events */
+  padding-right: 8px;
 }
 
 .time-gutter { 
@@ -371,12 +373,19 @@ button.danger {
 .days { 
   position: relative; 
   display: grid; 
-  grid-template-columns: repeat(7, 1fr); 
+  grid-template-columns: repeat(7, 1fr);
+  /* Add padding to prevent scrollbar from overlapping events */
+  padding-right: 12px;
 }
 
 .day-column { 
   position: relative; 
   border-left: 1px solid var(--border); 
+}
+
+/* Last day column - extra padding to prevent scrollbar overlap */
+.day-column:last-child {
+  padding-right: 4px;
 }
 
 /* Time slots */
